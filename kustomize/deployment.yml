@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: reddit_autoposter
-          image: ghcr.io/leemartin77/reddit_autoposter:latest
+          image: ghcr.io/leemartin77/reddit_autoposter:9cf7f2b3f62f5c7e063e646371290fb0ca4cc6c6
           imagePullPolicy: IfNotPresent
           resources:
             limits:
@@ -42,7 +42,7 @@ spec:
               value: xxxx
             - name: AUTH_REDIRECTURL
               value: xxxxx
-      # volumes:
-      #   - name: images-dir
-      #     persistentVolumeClaim:
-      #       claimName: reddit_autoposter-imgprssr-pvc
+              # volumes:
+              #   - name: images-dir
+              #     persistentVolumeClaim:
+              #       claimName: reddit_autoposter-imgprssr-pvc
