@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: reddit_autoposter
+  name: reddit_autoposter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit_autoposter
+  template:
+    metadata:
+      labels:
+        app: reddit_autoposter
+      namespace: reddit_autoposter
+      name: reddit_autoposter
+    spec:
+      containers:
+        - name: reddit_autoposter
+          image: ghcr.io/leemartin77/reddit_autoposter:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 200m
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - name: http
+              containerPort: 8080
+          # volumeMounts:
+          #   - name: images-dir
+          #     mountPath: /imgprssr
+          env:
+            - name: SQLITE_FILE
+              value: ./sqlite
+            - name: AUTH_ID
+              value: xxx
+            - name: AUTH_SECRET
+              value: xxxx
+            - name: AUTH_REDIRECTURL
+              value: xxxxx
+      # volumes:
+      #   - name: images-dir
+      #     persistentVolumeClaim:
+      #       claimName: reddit_autoposter-imgprssr-pvc
