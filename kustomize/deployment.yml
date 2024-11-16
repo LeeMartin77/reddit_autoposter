@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: reddit_autoposter
-  name: reddit_autoposter
+    app: reddit-autoposter
+  name: reddit-autoposter
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: reddit_autoposter
+      app: reddit-autoposter
   template:
     metadata:
       labels:
-        app: reddit_autoposter
-      namespace: reddit_autoposter
-      name: reddit_autoposter
+        app: reddit-autoposter
+      namespace: reddit-autoposter
+      name: reddit-autoposter
     spec:
       containers:
-        - name: reddit_autoposter
+        - name: reddit-autoposter
           image: ghcr.io/leemartin77/reddit_autoposter:e82cf2e0429b40b53e5be3ed15a4aa8617a9d600
           imagePullPolicy: IfNotPresent
           resources:
@@ -45,4 +45,4 @@ spec:
               # volumes:
               #   - name: images-dir
               #     persistentVolumeClaim:
-              #       claimName: reddit_autoposter-imgprssr-pvc
+              #       claimName: reddit-autoposter-imgprssr-pvc
