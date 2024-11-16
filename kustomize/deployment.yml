@@ -42,7 +42,7 @@ spec:
               value: xxxx
             - name: AUTH_REDIRECTURL
               value: xxxxx
-              volumes:
-                - name: storage-dir
-                  persistentVolumeClaim:
-                    claimName: reddit-autoposter-pvc
+      volumes:
+        - name: storage-dir
+          persistentVolumeClaim:
+            claimName: reddit-autoposter-pvc
