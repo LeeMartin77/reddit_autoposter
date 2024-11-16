@@ -7,7 +7,7 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=1 GOOS=linux CC=aarch64-linux-gnu-gcc GOARCH=$(echo $TARGETPLATFORM | sed 's/linux\///') go build -o dist/main cmd/webapp/main.go
+RUN CGO_ENABLED=1 GOOS=linux CC=aarch64-linux-gnu-gcc GOARCH=arm64 go build -o dist/main cmd/webapp/main.go
 
 FROM docker.io/debian:stable-slim AS runner
 RUN apt-get update -y && apt-get install -y ca-certificates
