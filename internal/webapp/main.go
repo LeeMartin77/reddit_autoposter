@@ -1,9 +1,12 @@
 package webapp
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -126,16 +129,38 @@ func (app Webapp) Run() error {
 		for k, v := range data {
 			form.Set(k, v)
 		}
-
-		resp, err := http.PostForm("https://www.reddit.com/api/v1/access_token", form)
+		client := &http.Client{}
+		req, err := http.NewRequest("POST", "https://www.reddit.com/api/v1/access_token", bytes.NewBufferString(form.Encode()))
 		if err != nil {
-			log.Error().Err(err).Msg("error posting code back for auth token")
+			log.Error().Err(err).Msg("error creating request")
+			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{"errorCode": "500", "errorMessage": "Unexpected error"})
+		}
+		req.Header.Set("Authorization", fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(app.cfg.AuthRedditAppId+":"+app.cfg.AuthRedditAppSecret))))
+
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Error().Err(err).Msg("error sending request to reddit")
+			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{"errorCode": "500", "errorMessage": "Unexpected error"})
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusTooManyRequests {
+			log.Error().Msg("fuck you I guess")
+			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{"errorCode": "666", "errorMessage": "Reddit API limits are dumb"})
+			return
+		}
+		if resp.StatusCode != http.StatusOK {
+			rawBody, err := io.ReadAll(resp.Body)
+			if err != nil {
+				log.Error().Err(err).Msg("error even getting body")
+			}
+			log.Error().Any("raw response", string(rawBody)).Msg("Raw error response from reddit")
+
 			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{"errorCode": "500", "errorMessage": "Unexpected error"})
 			return
 		}
-		defer resp.Body.Close()
 
 		var result TokenResponse
+
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 			log.Error().Err(err).Msg("error decoding token")
 			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{"errorCode": "500", "errorMessage": "Unexpected error"})
@@ -150,7 +175,7 @@ func (app Webapp) Run() error {
 		// set a cookie
 		// redirect to /home
 
-		c.HTML(http.StatusOK, "successful_login.tmpl", gin.H{"message": jsonString})
+		c.HTML(http.StatusOK, "successful_login.tmpl", gin.H{"message": string(jsonString)})
 	})
 
 	srv := &http.Server{

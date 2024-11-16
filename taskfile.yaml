@@ -13,3 +13,6 @@ tasks:
   run:
     cmds:
       - CGO_ENABLED=1 go run cmd/webapp/main.go
+  watch:
+    cmds:
+      - CGO_ENABLED=1 wgo run cmd/webapp/main.go
