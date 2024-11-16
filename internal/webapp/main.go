@@ -61,6 +61,8 @@ func handleFavicon(w http.ResponseWriter, r *http.Request) {
 func (app Webapp) Run() error {
 	r := gin.Default()
 
+	r.LoadHTMLGlob("web/template/*")
+
 	r.GET("/static/*filepath", func(c *gin.Context) {
 		handleStatic(c.Writer, c.Request)
 	})
@@ -70,7 +72,9 @@ func (app Webapp) Run() error {
 	})
 
 	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, map[string]string{"shepard": "commander"})
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{
+			"shepard": "commander",
+		})
 	})
 
 	srv := &http.Server{

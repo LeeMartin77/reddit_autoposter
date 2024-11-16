@@ -4,17 +4,9 @@ version: 3
 dotenv: ['.env']
 
 tasks:
-  generate:
-    cmds:
-      - echo generating
-      # - cd internal/storage && sqlc generate
   build:
-    deps:
-      - generate
     cmds:
-      - go build -o dist/main cmd/webapp/main.go
+      - CGO_ENABLED=1 go build -o dist/main cmd/webapp/main.go
   run:
-    deps:
-      - generate
     cmds:
-      - go run cmd/webapp/main.go
+      - CGO_ENABLED=1 go run cmd/webapp/main.go

@@ -1,0 +1,21 @@
+{{ define "components::header" }}
+<!DOCTYPE html>
+<html data-theme="light" style="margin:0; padding-bottom: 1em; min-height: 100vh;">
+<head>
+    <meta charset="UTF-8" />
+    <link href="/static/bulma@1.0.2.min.css" rel="stylesheet"/>
+    <link href="/static/styles.css" rel="stylesheet"/>
+    <script src="/static/htmx.org@2.0.1.min.js" type="application/javascript"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoposter</title>
+</head>
+<body hx-boost="true">
+    <div class="container">
+{{ end }}
+
+{{ define "components::footer" }}
+    </div>
+</body>
+<script src="/static/scripts.js" type="application/javascript"></script>
+</html>
+{{ end }}
