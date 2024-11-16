@@ -1,5 +1,7 @@
 FROM --platform=$BUILDPLATFORM docker.io/golang:1.23 AS server-builder
 ARG TARGETPLATFORM
+RUN apt-get update -y && \
+    apt-get install -y gcc-aarch64-linux-gnu
 WORKDIR /usr/src/app
 COPY go.mod go.mod
 COPY go.sum go.sum
