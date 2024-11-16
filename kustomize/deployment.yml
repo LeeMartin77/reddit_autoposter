@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: reddit_autoposter
-          image: ghcr.io/leemartin77/reddit_autoposter:aa5563384674c082e03bfca018f1f5010302f85e
+          image: ghcr.io/leemartin77/reddit_autoposter:e82cf2e0429b40b53e5be3ed15a4aa8617a9d600
           imagePullPolicy: IfNotPresent
           resources:
             limits:
