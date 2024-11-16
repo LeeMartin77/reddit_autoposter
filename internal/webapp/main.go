@@ -171,6 +171,7 @@ func (app Webapp) Run() error {
 		jsonString, _ := json.Marshal(result)
 
 		// TODO:
+		// lookup associated username (?)
 		// save access token
 		// set a cookie
 		// redirect to /home
