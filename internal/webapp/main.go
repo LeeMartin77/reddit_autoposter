@@ -13,6 +13,7 @@ import (
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
 	"github.com/leemartin77/reddit_autoposter/internal/config"
+	"github.com/leemartin77/reddit_autoposter/internal/storage"
 	"github.com/rs/zerolog/log"
 )
 
@@ -104,12 +105,21 @@ func (app Webapp) Run() error {
 }
 
 type Webapp struct {
+	cfg  *config.Configuration
+	strg storage.Storage
 }
 
 type IWebapp interface {
 	Run() error
 }
 
-func NewWebsite(cfg config.Configuration) (IWebapp, error) {
-	return &Webapp{}, nil
+func NewWebsite(cfg *config.Configuration) (IWebapp, error) {
+	strg, err := storage.NewStorage(cfg.SqliteFile)
+	if err != nil {
+		return nil, err
+	}
+	return &Webapp{
+		cfg:  cfg,
+		strg: strg,
+	}, nil
 }

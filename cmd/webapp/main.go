@@ -17,7 +17,7 @@ func main() {
 		log.Fatal().Err(err).Msg("An error was encountered parsing environment variables")
 	}
 
-	site, err := webapp.NewWebsite(config)
+	site, err := webapp.NewWebsite(&config)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("api failed to initialise")

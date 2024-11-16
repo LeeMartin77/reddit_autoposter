@@ -5,7 +5,7 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 RUN go mod download
 COPY . .
-RUN GOOS=linux GOARCH=$(echo $TARGETPLATFORM | sed 's/linux\///') \
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=$(echo $TARGETPLATFORM | sed 's/linux\///') \
     go build -o dist/main cmd/webapp/main.go
 
 FROM docker.io/debian:stable-slim AS runner
