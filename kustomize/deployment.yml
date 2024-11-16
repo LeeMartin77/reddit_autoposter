@@ -30,19 +30,19 @@ spec:
           ports:
             - name: http
               containerPort: 8080
-          # volumeMounts:
-          #   - name: images-dir
-          #     mountPath: /imgprssr
+          volumeMounts:
+            - name: storage-dir
+              mountPath: /storage
           env:
             - name: SQLITE_FILE
-              value: ./sqlite
+              value: /storage/sqlite
             - name: AUTH_ID
               value: xxx
             - name: AUTH_SECRET
               value: xxxx
             - name: AUTH_REDIRECTURL
               value: xxxxx
-              # volumes:
-              #   - name: images-dir
-              #     persistentVolumeClaim:
-              #       claimName: reddit-autoposter-imgprssr-pvc
+              volumes:
+                - name: storage-dir
+                  persistentVolumeClaim:
+                    claimName: reddit-autoposter-pvc
