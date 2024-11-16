@@ -1,17 +1,21 @@
 package webapp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"slices"
 	"strings"
 	"syscall"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/leemartin77/reddit_autoposter/internal/config"
 	"github.com/leemartin77/reddit_autoposter/internal/storage"
 	"github.com/rs/zerolog/log"
@@ -59,6 +63,14 @@ func handleFavicon(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, fileInfo.Name(), fileInfo.ModTime(), file)
 }
 
+type TokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int64  `json:"expires_in"`
+	Scope        string `json:"scope"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 func (app Webapp) Run() error {
 	r := gin.Default()
 
@@ -73,9 +85,72 @@ func (app Webapp) Run() error {
 	})
 
 	r.GET("/", func(c *gin.Context) {
+		code := uuid.NewString()
+
+		app.codeStore = append(app.codeStore, code)
+
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"shepard": "commander",
+			"signinLink": fmt.Sprintf("https://www.reddit.com/api/v1/authorize?client_id=%s&response_type=code&state=%s&redirect_uri=%s&duration=permanent&scope=submit,identity",
+				app.cfg.AuthRedditAppId,
+				code,
+				app.cfg.AuthRedditRedirectUrl,
+			),
 		})
+	})
+	r.GET("/auth/callback", func(c *gin.Context) {
+		e, hasError := c.GetQuery("error")
+		if hasError {
+			c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{"errorCode": e, "errorMessage": "Unable to authenticate"})
+			return
+		}
+
+		code, hasCode := c.GetQuery("code")
+		fmt.Println(code)
+		if !hasCode {
+			c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{"errorCode": "400", "errorMessage": "Missing code"})
+			return
+		}
+		state, hasState := c.GetQuery("state")
+		if !hasState {
+			c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{"errorCode": "400", "errorMessage": "Missing state"})
+			return
+		}
+
+		if !slices.Contains(app.codeStore, state) {
+			c.HTML(http.StatusBadRequest, "error.tmpl", gin.H{"errorCode": "400", "errorMessage": "Unrecognised state"})
+			return
+		}
+
+		data := map[string]string{"grant_type": "authorization_code", "code": code, "redirect_uri": app.cfg.AuthRedditRedirectUrl}
+		form := url.Values{}
+		for k, v := range data {
+			form.Set(k, v)
+		}
+
+		resp, err := http.PostForm("https://www.reddit.com/api/v1/access_token", form)
+		if err != nil {
+			log.Error().Err(err).Msg("error posting code back for auth token")
+			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{"errorCode": "500", "errorMessage": "Unexpected error"})
+			return
+		}
+		defer resp.Body.Close()
+
+		var result TokenResponse
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			log.Error().Err(err).Msg("error decoding token")
+			c.HTML(http.StatusInternalServerError, "error.tmpl", gin.H{"errorCode": "500", "errorMessage": "Unexpected error"})
+			return
+		}
+
+		// this is just for testing
+		jsonString, _ := json.Marshal(result)
+
+		// TODO:
+		// save access token
+		// set a cookie
+		// redirect to /home
+
+		c.HTML(http.StatusOK, "successful_login.tmpl", gin.H{"message": jsonString})
 	})
 
 	srv := &http.Server{
@@ -105,8 +180,9 @@ func (app Webapp) Run() error {
 }
 
 type Webapp struct {
-	cfg  *config.Configuration
-	strg storage.Storage
+	cfg       *config.Configuration
+	strg      storage.Storage
+	codeStore []string
 }
 
 type IWebapp interface {
@@ -119,7 +195,8 @@ func NewWebsite(cfg *config.Configuration) (IWebapp, error) {
 		return nil, err
 	}
 	return &Webapp{
-		cfg:  cfg,
-		strg: strg,
+		cfg:       cfg,
+		strg:      strg,
+		codeStore: []string{},
 	}, nil
 }
